@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Sheepdog
 
 **Sheepdog: Autonomous Livestock Herding Agent**
@@ -11,3 +12,7 @@ For setup instructions, please see the [Fabric Documentation page](https://docs.
 ## License
 
 This template is available under the CC0 license. Feel free to learn from it and incorporate it in your own projects.
+=======
+# sheepdog
+cool awesome minecraft mod
+>>>>>>> 16974d171ef7cb39ef889638f6ff542f964958f3
