@@ -4,22 +4,66 @@ A Minecraft Fabric vehicle platform for a reinforcement learning driving project
 **Phase 1 implements the Minecraft vehicle and test environment.** PPO training,
 Python simulation and ONNX inference are planned; this version does not include an autonomous policy.
 
-## Play
+## Start the game
+
+### Run from the source code
+
+1. Download this repository using **Code → Download ZIP** and extract it, or clone it.
+2. Install Java **25 or newer** and open a terminal in the project folder.
+3. Start the development game:
+
+   macOS/Linux:
+
+   ```sh
+   ./gradlew runClient
+   ```
+
+   Windows PowerShell:
+
+   ```powershell
+   .\gradlew.bat runClient
+   ```
+
+   If macOS/Linux reports permission denied, run `chmod +x gradlew` first.
+   The Gradle wrapper downloads the development dependencies, including Fabric API.
+4. Choose **Singleplayer**. Open an existing test world, or create a Creative world
+   with commands/cheats enabled. A Superflat world is convenient, but the mod also
+   provides its own flat test area inside any world.
+5. Press **T** to open chat and follow the first-drive steps below.
+
+### Install in a normal Minecraft instance
+
+Build the mod with `./gradlew build` (Windows: `.\gradlew.bat build`). The installable
+file is `build/libs/autodrive-0.1.0.jar`; the `-sources.jar` is for reading source code.
 
 Use Minecraft **26.3**, Java **25 or newer**, Fabric Loader **0.19.5 or newer** and
 Fabric API **0.161.0+26.3**. Put the AutoDrive JAR and Fabric API in the game's `mods` folder.
 AutoDrive must be installed on both client and server. Commands require cheats/operator permission.
 
-Open a world, then run:
+## Your first drive
+
+Enter this command in Minecraft chat:
 
 ```mcfunction
 /autodrive track build all
 ```
 
-Wait for the three completion messages, then enter a circuit:
+Wait for all three completion messages, then enter the first circuit:
 
 ```mcfunction
 /autodrive track go rookie
+```
+
+This teleports you to the starting grid and seats you in a car. Hold **W** to
+accelerate, use **A/D** to steer, and use **S** or **Space** to brake. Press **F5**
+for a third-person view; some keyboards require **Fn+F5**. Slow down before tight turns.
+
+If you are using an already-built AutoDrive Test Grounds save, skip the build command
+and go straight to `track go rookie`.
+
+To switch circuits, use either of these:
+
+```mcfunction
 /autodrive track go technical
 /autodrive track go grand_prix
 ```
@@ -70,6 +114,35 @@ This phase supports forward driving; S is a brake, not reverse gear.
 `manual` resumes keyboard control. Cars are owned by their spawning player.
 An owner in Creative mode can remove a car by hitting it.
 
+### Fix a damaged road or a stuck vehicle
+
+If you accidentally break road blocks, restore the original circuit with:
+
+```mcfunction
+/autodrive track build rookie
+```
+
+Use `technical` or `grand_prix` for the other circuits. To restore all three:
+
+```mcfunction
+/autodrive track build all
+```
+
+Wait for the completion messages. Rebuilding restores the standard layout,
+including the road, curbs and barriers, and replaces edits within the course footprint.
+`/autodrive reset` resets your car; rebuilding repairs the road.
+
+If you fall through a hole or get separated from your car, use
+`/autodrive track go rookie` (or the relevant circuit) to return to a grid.
+If controls do not respond after `/autodrive stop` or a timed command, run
+`/autodrive manual`. When standing outside a car, vehicle commands select your nearest
+unoccupied car within 12 blocks. You can also right-click your car to enter and resume manual driving.
+
+If `/autodrive` is unknown, check that AutoDrive loaded in the correct Minecraft
+instance. If permission is denied, enable commands/cheats or ask the server operator
+for permission. If Test Grounds is unavailable, fully close and reopen the world
+with the mod installed.
+
 ### Programmatic control
 
 ```mcfunction
@@ -92,6 +165,39 @@ vehicle.applyControl(new VehicleControl(steering, throttle, brake), leaseTicks);
 The server owns movement and uses Minecraft collision resolution. Manual controls
 use vanilla player input packets, so no client movement authority is required.
 The bicycle model and constants are documented in [docs/PHYSICS.md](docs/PHYSICS.md).
+
+## Core code to understand before Phase 2
+
+Read these in order. Track construction and rendering can wait.
+
+| File | What to understand |
+| --- | --- |
+| [VehicleControl.java](src/main/java/com/sanjay/autodrive/vehicle/VehicleControl.java) | The shared action contract: steering [-1,1], throttle [0,1], brake [0,1]. `manual()` converts keyboard input into the same actions a future policy will produce. |
+| [VehiclePhysics.java](src/main/java/com/sanjay/autodrive/vehicle/VehiclePhysics.java) | `step()` advances speed and heading by 0.05 seconds and returns horizontal displacement. This is the mathematical model the Python simulator needs to reproduce. |
+| [VehicleEntity.java](src/main/java/com/sanjay/autodrive/entity/VehicleEntity.java) | `tick()` selects an action, calls the physics model, applies Minecraft movement/collisions, and synchronizes speed. `applyControl()` accepts timed external actions; `manual()` and `stop()` change modes. |
+| [VehiclePhysicsTest.java](src/test/java/com/sanjay/autodrive/VehiclePhysicsTest.java) | Executable examples of acceleration, braking, drag, steering and the coordinate convention. Use these behaviors as simulator parity checks. |
+
+The driving loop is:
+
+```text
+keyboard input or programmatic action
+    → VehicleControl(steering, throttle, brake)
+    → VehiclePhysics.step(previousState, action, offRoad)
+    → VehicleEntity moves through Minecraft and resolves collisions
+    → updated vehicle state
+```
+
+Physics speed is in **meters/second**; returned movement is in **blocks per tick**
+(assuming one block equals one meter). Yaw is in **radians** inside the model and
+**degrees** on the Minecraft entity. Yaw zero points toward +Z. Keep the 20 Hz step,
+action limits, coordinate convention and physics coefficients consistent in Python.
+See [docs/PHYSICS.md](docs/PHYSICS.md) for the complete contract.
+
+Phase 2 adds a Gymnasium environment with position/speed/heading state, relative
+observations, action stepping, rewards, reset behavior and episode termination.
+Observations, rewards, the Python environment, PPO training and ONNX inference
+are **not implemented yet**. Start by matching the existing vehicle dynamics in a
+straight-road simulator; policy training follows in Phase 3.
 
 ## Development and verification
 
