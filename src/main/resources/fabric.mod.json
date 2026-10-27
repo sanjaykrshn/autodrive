@@ -1,38 +1,29 @@
 {
-	"schemaVersion": 1,
-	"id": "sheepdog",
-	"version": "${version}",
-	"name": "Sheepdog",
-	"description": "Sheepdog: Autonomous Livestock Herding Agent. A project focused on creating an autonomous helper that guides livestock into player-designated enclosures.",
-	"authors": [
-		"Sanjay Krishnan"
-	],
-	"contact": {
-		"homepage": "https://fabricmc.net/",
-		"sources": "https://github.com/FabricMC/fabric-example-mod"
-	},
-	"license": "CC0-1.0",
-	"icon": "assets/sheepdog/icon.png",
-	"environment": "*",
-	"entrypoints": {
-		"main": [
-			"com.sanjay.sheepdog.Sheepdog"
-		],
-		"client": [
-			"com.sanjay.sheepdog.client.SheepdogClient"
-		]
-	},
-	"mixins": [
-		"sheepdog.mixins.json",
-		{
-			"config": "sheepdog.client.mixins.json",
-			"environment": "client"
-		}
-	],
-	"depends": {
-		"fabricloader": ">=0.19.5",
-		"minecraft": "~26.3",
-		"java": ">=25",
-		"fabric-api": "*"
-	}
+  "schemaVersion": 1,
+  "id": "autodrive",
+  "version": "${version}",
+  "name": "AutoDrive",
+  "description": "Phase 1: controllable vehicles and three flat driving circuits. Reinforcement learning is planned for later phases.",
+  "authors": [
+    "Sanjay Krishnan"
+  ],
+  "contact": {
+    "sources": "https://github.com/sanjaykrshn/autodrive"
+  },
+  "license": "CC0-1.0",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "com.sanjay.autodrive.AutoDrive"
+    ],
+    "client": [
+      "com.sanjay.autodrive.client.AutoDriveClient"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.19.5",
+    "minecraft": "~26.3",
+    "java": ">=25",
+    "fabric-api": "*"
+  }
 }

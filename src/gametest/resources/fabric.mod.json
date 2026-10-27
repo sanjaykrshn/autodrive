@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "id": "autodrive-test",
+  "version": "1.0.0",
+  "name": "AutoDrive Tests",
+  "environment": "*",
+  "entrypoints": {
+    "fabric-gametest": [
+      "com.sanjay.autodrive.test.VehicleGameTests"
+    ],
+    "fabric-client-gametest": [
+      "com.sanjay.autodrive.test.CircuitClientTest"
+    ]
+  },
+  "depends": {
+    "autodrive": "*"
+  }
+}
